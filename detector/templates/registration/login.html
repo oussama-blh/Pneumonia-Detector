@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        (function() {
+            try {
+                var t = localStorage.getItem('pneumoai-theme');
+                document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+            } catch(e) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PneumoAI — Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="login-page">
+        <!-- Theme toggle -->
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle color mode" style="position: fixed; top: 2rem; right: 2rem; z-index: 100;">
+            <span class="theme-toggle-track">
+                <span class="theme-toggle-icon theme-toggle-icon-sun" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="4"></circle>
+                        <path d="M12 2v2"></path><path d="M12 20v2"></path>
+                        <path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path>
+                        <path d="M2 12h2"></path><path d="M20 12h2"></path>
+                        <path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path>
+                    </svg>
+                </span>
+                <span class="theme-toggle-icon theme-toggle-icon-moon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </span>
+                <span class="theme-toggle-thumb"></span>
+            </span>
+        </button>
+
+        <div class="login-card glass-panel fade-in" style="padding: 3rem 2.5rem; width: 100%; max-width: 420px;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div class="logo" style="justify-content: center; font-size: 1.75rem; margin-bottom: 0.5rem;">
+                    <span class="logo-icon">🩺</span>
+                    <span class="logo-text">Pneumo<span class="text-accent">AI</span></span>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.95rem;">Sign in to access the diagnostic platform</p>
+            </div>
+
+            {% if form.errors %}
+            <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.4); border-radius: 12px; color: #ef4444; font-size: 0.9rem; text-align: center;">
+                Invalid username or password.
+            </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}">
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 500;">Username</label>
+                        <input type="text" name="username" required autofocus class="login-input">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 500;">Password</label>
+                        <input type="password" name="password" required class="login-input">
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 0.5rem; padding: 1rem;">
+                        Sign In
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const root = document.documentElement;
+            const toggle = document.getElementById('theme-toggle');
+            if (!toggle) return;
+            function applyTheme(theme) {
+                root.setAttribute('data-theme', theme);
+            }
+            toggle.addEventListener('click', function () {
+                var next = (root.getAttribute('data-theme') || 'dark') === 'dark' ? 'light' : 'dark';
+                try { localStorage.setItem('pneumoai-theme', next); } catch(e) {}
+                applyTheme(next);
+            });
+        });
+    </script>
+</body>
+</html>

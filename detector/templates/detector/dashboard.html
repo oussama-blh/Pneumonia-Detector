@@ -1,0 +1,290 @@
+{% extends 'detector/base.html' %}
+
+{% block content %}
+<div class="dashboard-page fade-in">
+    <section class="dashboard-hero glass-panel">
+        <div class="dashboard-hero-main">
+            <span class="dashboard-chip">Operational Overview</span>
+            <h1 class="dashboard-title">Clinical analytics for {{ request.user.first_name|default:request.user.username }}</h1>
+            <p class="dashboard-subtitle">Monitor patient volume, diagnosis distribution, and the latest X-ray analyses from one admin-focused view.</p>
+            <div class="dashboard-hero-actions">
+                <a href="{% url 'predict' %}" class="btn-primary dashboard-primary-action">New Prediction</a>
+                <a href="{% url 'patient_list' %}" class="dashboard-secondary-action">Browse Patients</a>
+            </div>
+        </div>
+        <div class="dashboard-hero-side">
+            <div class="dashboard-highlight-card">
+                <div class="dashboard-highlight-label">Average confidence</div>
+                <div class="dashboard-highlight-value">{{ average_confidence }}%</div>
+                <div class="dashboard-progress">
+                    <div class="dashboard-progress-bar" style="width: {{ average_confidence }}%;"></div>
+                </div>
+                <div class="dashboard-highlight-meta">Based on the 5 most recent analyses</div>
+            </div>
+            <div class="dashboard-mini-grid">
+                <div class="dashboard-mini-stat">
+                    <span class="dashboard-mini-label">Normal rate</span>
+                    <strong class="dashboard-mini-value good">{{ normal_rate }}%</strong>
+                </div>
+                <div class="dashboard-mini-stat">
+                    <span class="dashboard-mini-label">Pneumonia rate</span>
+                    <strong class="dashboard-mini-value danger">{{ pneumonia_rate }}%</strong>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard-stats-grid">
+        <article class="dashboard-stat-card glass-panel">
+            <div class="dashboard-stat-icon dashboard-stat-icon-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"></path><path d="M9 9h.01"></path><path d="M15 9h.01"></path><path d="M9 15h.01"></path><path d="M15 15h.01"></path></svg>
+            </div>
+            <div>
+                <div class="dashboard-stat-label">Total Patients</div>
+                <div class="dashboard-stat-value">{{ total_patients }}</div>
+                <div class="dashboard-stat-meta">All stored prediction records</div>
+            </div>
+        </article>
+        <article class="dashboard-stat-card glass-panel">
+            <div class="dashboard-stat-icon dashboard-stat-icon-good">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+            </div>
+            <div>
+                <div class="dashboard-stat-label">Normal Cases</div>
+                <div class="dashboard-stat-value">{{ normal_count }}</div>
+                <div class="dashboard-stat-meta">Cases with normal findings</div>
+            </div>
+        </article>
+        <article class="dashboard-stat-card glass-panel">
+            <div class="dashboard-stat-icon dashboard-stat-icon-danger">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </div>
+            <div>
+                <div class="dashboard-stat-label">Pneumonia Cases</div>
+                <div class="dashboard-stat-value">{{ pneumonia_count }}</div>
+                <div class="dashboard-stat-meta">Detected abnormal cases</div>
+            </div>
+        </article>
+        <article class="dashboard-stat-card glass-panel">
+            <div class="dashboard-stat-icon dashboard-stat-icon-warning">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg>
+            </div>
+            <div>
+                <div class="dashboard-stat-label">Avg. Confidence</div>
+                <div class="dashboard-stat-value">{{ average_confidence }}%</div>
+                <div class="dashboard-stat-meta">Latest model certainty level</div>
+            </div>
+        </article>
+    </section>
+
+    <section class="dashboard-analytics-grid">
+        <article class="glass-panel dashboard-panel">
+            <div class="dashboard-panel-header">
+                <div>
+                    <h3>Diagnosis Split</h3>
+                    <p>Current class distribution</p>
+                </div>
+            </div>
+            <div class="dashboard-chart-wrap dashboard-chart-wrap-donut">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </article>
+
+        <article class="glass-panel dashboard-panel">
+            <div class="dashboard-panel-header">
+                <div>
+                    <h3>Comparison Chart</h3>
+                    <p>Normal versus pneumonia cases</p>
+                </div>
+            </div>
+            <div class="dashboard-chart-wrap">
+                <canvas id="barChart"></canvas>
+            </div>
+        </article>
+
+        <article class="glass-panel dashboard-panel dashboard-summary-panel">
+            <div class="dashboard-panel-header">
+                <div>
+                    <h3>Summary</h3>
+                    <p>Quick diagnostic overview</p>
+                </div>
+            </div>
+            <div class="dashboard-summary-list">
+                <div class="dashboard-summary-item">
+                    <div class="dashboard-summary-top">
+                        <span>Normal</span>
+                        <strong class="good">{{ normal_rate }}%</strong>
+                    </div>
+                    <div class="dashboard-progress dashboard-progress-soft">
+                        <div class="dashboard-progress-bar good" style="width: {{ normal_rate }}%;"></div>
+                    </div>
+                </div>
+                <div class="dashboard-summary-item">
+                    <div class="dashboard-summary-top">
+                        <span>Pneumonia</span>
+                        <strong class="danger">{{ pneumonia_rate }}%</strong>
+                    </div>
+                    <div class="dashboard-progress dashboard-progress-soft danger-track">
+                        <div class="dashboard-progress-bar danger" style="width: {{ pneumonia_rate }}%;"></div>
+                    </div>
+                </div>
+                <div class="dashboard-summary-card">
+                    <span class="dashboard-summary-card-label">Recent analyses</span>
+                    <strong class="dashboard-summary-card-value">{{ recent_patients|length }}</strong>
+                    <span class="dashboard-summary-card-meta">Shown in the activity table below</span>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section class="glass-panel dashboard-table-panel">
+        <div class="dashboard-panel-header dashboard-table-header">
+            <div>
+                <h3>Recent Patients</h3>
+                <p>Most recent diagnoses handled by the platform</p>
+            </div>
+            <a href="{% url 'patient_list' %}" class="dashboard-inline-link">View all patients</a>
+        </div>
+        <div class="dashboard-table-wrap">
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Phone</th>
+                        <th>Prediction</th>
+                        <th>Confidence</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in recent_patients %}
+                    <tr>
+                        <td>
+                            <div class="dashboard-patient-cell">
+                                <span class="user-avatar">{{ patient.first_name|slice:':1'|upper }}</span>
+                                <div>
+                                    <div class="dashboard-patient-name">{{ patient.first_name }} {{ patient.last_name }}</div>
+                                    <div class="dashboard-patient-meta">Age {{ patient.age }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ patient.phone_number }}</td>
+                        <td>
+                            <span class="dashboard-badge {% if patient.prediction == 'Normal' %}good{% else %}danger{% endif %}">{{ patient.prediction }}</span>
+                        </td>
+                        <td class="dashboard-confidence">{{ patient.confidence_score }}%</td>
+                        <td>{{ patient.created_at|date:'Y-m-d H:i' }}</td>
+                        <td><a href="{% url 'result' patient.id %}" class="dashboard-inline-link">Details</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="dashboard-empty-state">No patient analyses yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const normalCount = {{ normal_count }};
+    const pneumoniaCount = {{ pneumonia_count }};
+
+    function getTheme() {
+        return document.documentElement.getAttribute('data-theme') || 'dark';
+    }
+
+    function chartTextColor() {
+        return getTheme() === 'light' ? '#334155' : '#94a3b8';
+    }
+
+    function chartGridColor() {
+        return getTheme() === 'light' ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.06)';
+    }
+
+    function chartDonutBackground() {
+        return getTheme() === 'light'
+            ? ['rgba(5, 150, 105, 0.82)', 'rgba(220, 38, 38, 0.78)']
+            : ['rgba(16, 185, 129, 0.82)', 'rgba(239, 68, 68, 0.82)'];
+    }
+
+    Chart.defaults.color = chartTextColor();
+    Chart.defaults.font.family = 'Inter';
+
+    const pieChart = new Chart(document.getElementById('pieChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Normal', 'Pneumonia'],
+            datasets: [{
+                data: [normalCount, pneumoniaCount],
+                backgroundColor: chartDonutBackground(),
+                borderWidth: 0,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '72%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { padding: 18, boxWidth: 12 }
+                }
+            }
+        }
+    });
+
+    const barChart = new Chart(document.getElementById('barChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Normal', 'Pneumonia'],
+            datasets: [{
+                data: [normalCount, pneumoniaCount],
+                backgroundColor: ['rgba(16, 185, 129, 0.24)', 'rgba(239, 68, 68, 0.24)'],
+                borderColor: ['#10b981', '#ef4444'],
+                borderWidth: 1.5,
+                borderRadius: 12,
+                maxBarThickness: 58
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: chartGridColor() },
+                    ticks: { color: chartTextColor(), stepSize: 1 }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: chartTextColor() }
+                }
+            }
+        }
+    });
+
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', function () {
+            setTimeout(function () {
+                const textColor = chartTextColor();
+                const gridColor = chartGridColor();
+                Chart.defaults.color = textColor;
+                pieChart.data.datasets[0].backgroundColor = chartDonutBackground();
+                pieChart.options.plugins.legend.labels.color = textColor;
+                pieChart.update();
+                barChart.options.scales.y.grid.color = gridColor;
+                barChart.options.scales.y.ticks.color = textColor;
+                barChart.options.scales.x.ticks.color = textColor;
+                barChart.update();
+            }, 50);
+        });
+    }
+</script>
+{% endblock %}

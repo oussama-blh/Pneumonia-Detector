@@ -1,0 +1,84 @@
+{% extends 'detector/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="result-header fade-in" style="margin-bottom: 2rem;">
+    <h2>Analysis Complete</h2>
+    <p>Our deep learning ensemble has evaluated the patient's X-Ray.</p>
+</div>
+
+<div class="result-container fade-in delay-1" style="max-width: 1100px; grid-template-columns: 1fr 1.5fr;">
+    <!-- Left Column: Image & Details -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div class="image-panel glass-panel">
+            <div class="panel-header" style="background: var(--bg-surface);">
+                <h3 style="font-size: 1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Patient X-Ray</h3>
+            </div>
+            <div class="image-wrapper" style="padding: 1.5rem;">
+                <img src="{{ patient.xray_image.url }}" alt="Uploaded X-Ray" style="width: 100%; border-radius: 12px; border: 1px solid var(--border-color);">
+            </div>
+            <div style="padding: 1.5rem; border-top: 1px solid var(--border-color); background: var(--bg-surface);">
+                <h4 style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Clinical Details</h4>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 1rem; font-size: 0.95rem;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Name</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ patient.first_name }} {{ patient.last_name }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Age</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ patient.age }} yrs</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Contact</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ patient.phone_number }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Results Dashboard -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        
+        <!-- Overall Result Card -->
+        <div class="glass-panel" style="border: 1px solid {% if patient.prediction == 'Normal' %}rgba(16, 185, 129, 0.3){% else %}rgba(245, 158, 11, 0.3){% endif %}; position: relative; overflow: hidden;">
+            <div style="position: absolute; top:0; left:0; width:4px; height:100%; background: {% if patient.prediction == 'Normal' %}var(--safe){% else %}#f59e0b{% endif %};"></div>
+            <div style="padding: 2.5rem; text-align: center;">
+                <h4 style="color: var(--text-secondary); letter-spacing: 2px; font-size: 0.8rem; margin-bottom: 1rem; text-transform: uppercase;">Overall Diagnosis</h4>
+                <div style="font-size: 3.5rem; font-weight: 800; text-transform: uppercase; color: {% if patient.prediction == 'Normal' %}var(--safe){% else %}#f59e0b{% endif %}; letter-spacing: -1px; text-shadow: 0 0 30px {% if patient.prediction == 'Normal' %}rgba(16, 185, 129, 0.4){% else %}rgba(245, 158, 11, 0.4){% endif %};">
+                    {{ patient.prediction }}
+                </div>
+                <div style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.95rem;">
+                    {{ patient.confidence_score }}% Model Agreement
+                </div>
+            </div>
+        </div>
+        
+        <!-- 4 Model Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            {% for model_name, data in patient.model_results.items %}
+            <div class="glass-panel" style="padding: 1.5rem; border: 1px solid var(--border-color); position: relative; overflow: hidden;">
+                <!-- Left color strip -->
+                 <div style="position: absolute; top: 1rem; bottom: 1rem; left: 0; width: 3px; background: {% if data.prediction == 'Normal' %}var(--safe){% else %}#f59e0b{% endif %}; border-radius: 0 4px 4px 0;"></div>
+                
+                <div style="font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; color: var(--text-secondary); text-align: center; text-transform: uppercase; margin-bottom: 1.5rem;">
+                    {{ model_name }}
+                </div>
+                <div style="text-align: center; font-weight: 700; font-size: 1.3rem; margin-bottom: 1.5rem; color: {% if data.prediction == 'Normal' %}var(--safe){% else %}#f59e0b{% endif %};">
+                    {% if data.prediction == 'Normal' %}😊{% else %}⚠️{% endif %} {{ data.prediction|upper }}
+                </div>
+                <div style="height: 6px; background: var(--bg-surface); border-radius: 6px; overflow: hidden; margin-bottom: 0.5rem;">
+                    <div style="height: 100%; width: {{ data.confidence }}%; background: {% if data.prediction == 'Normal' %}var(--safe){% else %}#f59e0b{% endif %}; box-shadow: 0 0 10px {% if data.prediction == 'Normal' %}var(--safe){% else %}#f59e0b{% endif %};"></div>
+                </div>
+                <div style="text-align: center; font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">
+                    {{ data.confidence }}%
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        
+    </div>
+</div>
+
+{% endblock %}

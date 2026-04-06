@@ -1,0 +1,35 @@
+{% extends 'detector/base.html' %}
+
+{% block content %}
+<div class="hero-section fade-in">
+    <h1 class="hero-title">My Profile</h1>
+    <p class="hero-subtitle">Overview of your account information and workspace access.</p>
+</div>
+
+<div class="result-container fade-in delay-1" style="max-width: 1100px; grid-template-columns: 340px 1fr;">
+    <div class="glass-panel" style="padding: 2rem; align-items: center; text-align: center;">
+        {% if profile_obj.profile_image %}
+            <img src="{{ profile_obj.profile_image.url }}" alt="Profile picture" class="account-avatar-image" style="width: 86px; height: 86px; margin-bottom: 1rem;">
+        {% else %}
+            <div class="user-avatar large" style="width: 86px; height: 86px; font-size: 1.7rem; margin-bottom: 1rem;">{{ profile_user.username|slice:':1'|upper }}</div>
+        {% endif %}
+        <h3 style="font-size: 1.4rem; margin-bottom: 0.4rem;">{{ profile_user.get_full_name|default:profile_user.username }}</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">{{ profile_user.email|default:'No email address yet' }}</p>
+        <a href="{% url 'account_settings' %}" class="btn-primary" style="width: auto; padding: 0.9rem 1.5rem;">Edit Profile</a>
+    </div>
+
+    <div class="glass-panel" style="padding: 2rem;">
+        <div class="panel-header" style="padding: 0 0 1rem; border-bottom: 1px solid var(--border-color); background: transparent;">
+            <h3>Account Details</h3>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; padding-top: 1.5rem;">
+            <div><div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.35rem;">Username</div><div>{{ profile_user.username }}</div></div>
+            <div><div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.35rem;">Email</div><div>{{ profile_user.email|default:'-' }}</div></div>
+            <div><div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.35rem;">First Name</div><div>{{ profile_user.first_name|default:'-' }}</div></div>
+            <div><div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.35rem;">Last Name</div><div>{{ profile_user.last_name|default:'-' }}</div></div>
+            <div><div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.35rem;">Last Login</div><div>{{ profile_user.last_login|date:'Y-m-d H:i'|default:'-' }}</div></div>
+            <div><div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.35rem;">Joined</div><div>{{ profile_user.date_joined|date:'Y-m-d' }}</div></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

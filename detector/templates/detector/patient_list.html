@@ -1,0 +1,114 @@
+{% extends 'detector/base.html' %}
+
+{% block content %}
+<div class="hero-section fade-in">
+    <h1 class="hero-title">Patient Records</h1>
+    <p class="hero-subtitle">A dedicated view of all saved patient information and diagnosis results.</p>
+</div>
+
+<div class="glass-panel fade-in delay-1" style="width: 100%; max-width: 1200px; padding: 0; overflow: hidden;">
+    <div class="panel-header" style="padding: 1.5rem 2rem;">
+        <h3>Patients Table</h3>
+    </div>
+
+    <form method="get" class="patient-filters" style="display: grid; grid-template-columns: 1fr 1.2fr 1fr auto auto; gap: 1rem; padding: 1.5rem 2rem; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
+        <select name="search_field" style="padding: 0.85rem 1rem; border-radius: 10px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: white;">
+            <option value="first_name" {% if search_field == 'first_name' %}selected{% endif %}>First Name</option>
+            <option value="last_name" {% if search_field == 'last_name' %}selected{% endif %}>Last Name</option>
+            <option value="phone_number" {% if search_field == 'phone_number' %}selected{% endif %}>Phone</option>
+            <option value="prediction" {% if search_field == 'prediction' %}selected{% endif %}>Prediction</option>
+        </select>
+
+        <input type="text" name="search_query" value="{{ search_query }}" placeholder="Search in selected column..." style="padding: 0.85rem 1rem; border-radius: 10px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: white;">
+
+        <select name="sort_by" style="padding: 0.85rem 1rem; border-radius: 10px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: white;">
+            <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Newest First</option>
+            <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Oldest First</option>
+            <option value="first_name" {% if sort_by == 'first_name' %}selected{% endif %}>First Name A-Z</option>
+            <option value="last_name" {% if sort_by == 'last_name' %}selected{% endif %}>Last Name A-Z</option>
+            <option value="prediction" {% if sort_by == 'prediction' %}selected{% endif %}>Prediction</option>
+            <option value="-confidence_score" {% if sort_by == '-confidence_score' %}selected{% endif %}>Highest Confidence</option>
+            <option value="confidence_score" {% if sort_by == 'confidence_score' %}selected{% endif %}>Lowest Confidence</option>
+        </select>
+
+        <select name="per_page" style="padding: 0.85rem 1rem; border-radius: 10px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: white;">
+            <option value="5" {% if per_page == '5' %}selected{% endif %}>5 rows</option>
+            <option value="10" {% if per_page == '10' %}selected{% endif %}>10 rows</option>
+            <option value="20" {% if per_page == '20' %}selected{% endif %}>20 rows</option>
+        </select>
+
+        <button type="submit" class="btn-primary" style="width: auto; padding: 0.85rem 1.4rem;">Apply</button>
+    </form>
+
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; min-width: 980px;">
+            <thead>
+                <tr style="background: rgba(255,255,255,0.03); text-align: left;">
+                    <th style="padding: 1rem 1.25rem; color: var(--text-secondary);">First Name</th>
+                    <th style="padding: 1rem 1.25rem; color: var(--text-secondary);">Last Name</th>
+                    <th style="padding: 1rem 1.25rem; color: var(--text-secondary);">Age</th>
+                    <th style="padding: 1rem 1.25rem; color: var(--text-secondary);">Phone</th>
+                    <th style="padding: 1rem 1.25rem; color: var(--text-secondary);">Prediction</th>
+                    <th style="padding: 1rem 1.25rem; color: var(--text-secondary);">Confidence</th>
+                    <th style="padding: 1rem 1.25rem; color: var(--text-secondary);">Date</th>
+                    <th style="padding: 1rem 1.25rem; color: var(--text-secondary);">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr style="border-top: 1px solid var(--border-color);">
+                    <td style="padding: 1rem 1.25rem;">{{ patient.first_name }}</td>
+                    <td style="padding: 1rem 1.25rem;">{{ patient.last_name }}</td>
+                    <td style="padding: 1rem 1.25rem;">{{ patient.age }}</td>
+                    <td style="padding: 1rem 1.25rem;">{{ patient.phone_number }}</td>
+                    <td style="padding: 1rem 1.25rem;">
+                        <span class="dashboard-badge {% if patient.prediction == 'Normal' %}good{% else %}danger{% endif %}">
+                            {{ patient.prediction }}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem 1.25rem;">{{ patient.confidence_score }}%</td>
+                    <td style="padding: 1rem 1.25rem; color: var(--text-secondary);">{{ patient.created_at|date:'Y-m-d H:i' }}</td>
+                    <td style="padding: 1rem 1.25rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <a href="{% url 'result' patient.id %}" class="action-icon-btn action-view" title="View Result">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </a>
+                            <a href="{% url 'patient_edit' patient.id %}" class="action-icon-btn action-edit" title="Edit Patient">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </a>
+                            <form method="post" action="{% url 'patient_delete' patient.id %}" style="margin: 0;" onsubmit="return confirm('Are you sure you want to delete this patient?');">
+                                {% csrf_token %}
+                                <button type="submit" class="action-icon-btn action-delete" title="Delete Patient">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="padding: 2rem 1.25rem; text-align: center; color: var(--text-secondary);">No patients match your current filters.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 2rem 1.5rem; border-top: 1px solid var(--border-color);">
+        <span style="color: var(--text-secondary); font-size: 0.9rem;">
+            Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+        </span>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if page_query %}&{{ page_query }}{% endif %}"
+               style="padding: 0.6rem 1.2rem; border-radius: 10px; color: var(--text-primary); text-decoration: none; font-weight: 600; background: var(--card-bg); border: 1px solid var(--border-color); transition: all 0.3s ease;" class="pagination-btn">Previous</a>
+            {% endif %}
+            <span style="padding: 0.6rem 1rem; color: var(--text-secondary); font-size: 0.9rem;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if page_query %}&{{ page_query }}{% endif %}"
+               style="padding: 0.6rem 1.2rem; border-radius: 10px; color: var(--text-primary); text-decoration: none; font-weight: 600; background: var(--card-bg); border: 1px solid var(--border-color); transition: all 0.3s ease;" class="pagination-btn">Next</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

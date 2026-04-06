@@ -1,0 +1,142 @@
+{% extends 'detector/base.html' %}
+
+{% block content %}
+<div class="account-shell fade-in">
+    <aside class="glass-panel account-side-card">
+        <div class="account-avatar-wrap">
+            {% if profile_obj.profile_image %}
+                <img src="{{ profile_obj.profile_image.url }}" alt="Profile picture" class="account-avatar-image">
+            {% else %}
+                <span class="user-avatar account-avatar">{{ profile_user.username|default:'U'|slice:':1'|upper }}</span>
+            {% endif %}
+            <h2>{{ profile_user.get_full_name|default:profile_user.username }}</h2>
+            <p>{{ profile_user.email|default:'No email set' }}</p>
+        </div>
+
+        <div class="account-meta-list">
+            <div class="account-meta-item">
+                <span>Username</span>
+                <strong>{{ profile_user.username }}</strong>
+            </div>
+            <div class="account-meta-item">
+                <span>Joined</span>
+                <strong>{{ profile_user.date_joined|date:'Y-m-d' }}</strong>
+            </div>
+            <div class="account-meta-item">
+                <span>Last Login</span>
+                <strong>{{ profile_user.last_login|date:'Y-m-d H:i'|default:'-' }}</strong>
+            </div>
+        </div>
+
+        <a href="{% url 'profile' %}" class="account-side-link">View Public Profile</a>
+    </aside>
+
+    <section class="glass-panel account-main-card">
+        <div class="account-header">
+            <h1>Account Settings</h1>
+            <p>Manage your profile details and security settings.</p>
+        </div>
+
+        <div class="account-tabs" id="account-tabs">
+            <button type="button" class="account-tab {% if active_tab != 'security' %}active{% endif %}" data-tab="account">Account</button>
+            <button type="button" class="account-tab {% if active_tab == 'security' %}active{% endif %}" data-tab="security">Security</button>
+            <button type="button" class="account-tab" disabled>Notifications</button>
+        </div>
+
+        {% if messages %}
+            <div class="account-alerts">
+                {% for message in messages %}
+                    <div class="account-alert {% if message.tags == 'success' %}success{% else %}error{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div id="panel-account" class="account-panel {% if active_tab != 'security' %}active{% endif %}">
+            <form method="post" enctype="multipart/form-data" class="account-form-grid">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="account">
+                <label class="account-field">
+                    <span>Username</span>
+                    <input type="text" name="username" value="{{ profile_user.username }}" required>
+                </label>
+                <label class="account-field">
+                    <span>Email</span>
+                    <input type="email" name="email" value="{{ profile_user.email }}">
+                </label>
+                <label class="account-field">
+                    <span>First Name</span>
+                    <input type="text" name="first_name" value="{{ profile_user.first_name }}">
+                </label>
+                <label class="account-field">
+                    <span>Last Name</span>
+                    <input type="text" name="last_name" value="{{ profile_user.last_name }}">
+                </label>
+                <label class="account-field account-field-full">
+                    <span>Profile Picture</span>
+                    <input type="file" name="profile_image" accept="image/*">
+                    <small class="account-field-hint">Upload JPG or PNG to update your profile photo.</small>
+                </label>
+
+                <div class="account-form-actions">
+                    <a href="{% url 'profile' %}" class="account-cancel">Cancel</a>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="panel-security" class="account-panel {% if active_tab == 'security' %}active{% endif %}">
+            <form method="post" class="account-form-grid account-security-grid">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="password">
+
+                <label class="account-field">
+                    <span>Current Password</span>
+                    <input type="password" name="current_password" autocomplete="current-password" required>
+                </label>
+                <label class="account-field">
+                    <span>New Password</span>
+                    <input type="password" name="new_password" autocomplete="new-password" required>
+                </label>
+                <label class="account-field">
+                    <span>Confirm New Password</span>
+                    <input type="password" name="confirm_password" autocomplete="new-password" required>
+                </label>
+
+                <div class="account-security-note">
+                    Password must be at least 8 characters and different from your current password.
+                </div>
+
+                <div class="account-form-actions">
+                    <button type="submit" class="btn-primary">Change Password</button>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var tabs = document.querySelectorAll('#account-tabs [data-tab]');
+        var accountPanel = document.getElementById('panel-account');
+        var securityPanel = document.getElementById('panel-security');
+
+        if (!tabs.length || !accountPanel || !securityPanel) return;
+
+        function setTab(tabName) {
+            tabs.forEach(function (tab) {
+                tab.classList.toggle('active', tab.getAttribute('data-tab') === tabName);
+            });
+            accountPanel.classList.toggle('active', tabName === 'account');
+            securityPanel.classList.toggle('active', tabName === 'security');
+        }
+
+        tabs.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                setTab(tab.getAttribute('data-tab'));
+            });
+        });
+    });
+</script>
+{% endblock %}
