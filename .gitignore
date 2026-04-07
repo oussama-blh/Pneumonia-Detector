@@ -38,3 +38,9 @@ Thumbs.db
 
 # Static files collected for production
 staticfiles/
+
+# Server logs
+server.log
+
+# Claude Code
+.claude/
